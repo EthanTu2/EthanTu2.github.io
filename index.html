@@ -1,0 +1,404 @@
+<!doctype html>
+<html>
+
+<head>
+     <!-- Required meta tags -->
+     <meta charset="utf-8">
+     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+ 
+    <title>Tear Aqueous Production Rate</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/regression/2.0.1/regression.min.js"></script>
+    <script src="utils.js"></script>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    
+    <!-- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-KyZXEAg3QhqLMpG8r+8fhAXLRk2vvoC2f3B09zVXn8CA5QIVfZOJ3BCsw2P0p/We" crossorigin="anonymous"> -->
+    <style>
+    /* canvas{
+        -moz-user-select: none;
+        -webkit-user-select: none;
+        -ms-user-select: none;
+    } */
+    
+    </style>
+</head>
+
+<body>
+    
+    
+    
+    <div class="container">
+        <h1 class="display-4 text-center pt-5 pb-1">Schirmer's Test Production Rate</h1>
+        <h3 class="display-5 text-center pt-1 pb-5">Navigate to the <a href="instructions.html">Instructions Page</a></h3>
+        <div class="row">
+          <div class="col" id = "data_input"> 
+            <!-- <button id="randomizeData">Randomize Data</button>
+            <button id="addDataset">Add Dataset</button>
+            <button id="removeDataset">Remove Dataset</button>
+            <button id="addData">Add Data</button>
+            <button id="removeData">Remove Data</button> -->
+            <!-- <form> -->
+                <!-- <fieldset> -->
+                    
+                    <div class="form-group row">
+                        <div class="col-sm-10 offset-sm-1">
+                            <button id =  "add_point" class="btn btn-primary">Add Data Point</button>
+                        </div>
+                        <div class="col-sm-10 offset-sm-1 pt-2">
+                            <button id =  "remove_point" class="btn btn-primary">Remove Data Point</button>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group row">
+                        
+                        <label class="col-sm-3 col-form-label"><b>Time (sec)</b></label>
+                        
+                        <label class="col-sm-5 col-form-label "><b>Wetted Length (mm)</b></label>
+                        
+                    </div>
+                    <div class="form-group row" id = "data_0">
+                        
+                        <input type="number" step="1" id="data_0_time"  class="form-control col-sm-2" value=180>
+                        
+                        <input type="number" step="0.1" id="data_0_length"  class="form-control offset-sm-2 col-sm-2" value=1>
+                        
+                    </div>
+                    <div class="form-group row" id = "data_1">
+                        <input type="number" step="1" id="data_1_time"  class="form-control col-sm-2" value=195>
+                        <input type="number" step="0.1" id="data_1_length"  class="form-control offset-sm-2 col-sm-2" value=2>
+                    </div>
+                    <div class="form-group row" id = "data_2">
+                        <input type="number" step="1" id="data_2_time"  class="form-control col-sm-2" value=210>
+                        <input type="number" step="0.1" id="data_2_length"  class="form-control offset-sm-2 col-sm-2" value=3>
+                    </div>
+
+                    <div class="form-group row">
+                        <label for = 'saturation_time' class="col-sm-4 col-form-label"><b>Saturation Time (sec)</b></label>
+                        <input type="number" step="1" id="saturation_time"  class="form-control col-sm-2" > 
+                    </div>
+                    
+                    <div class="form-group row">
+                        <div class="col-sm-10 offset-sm-1 pt-2">
+                            <button id =  "calc_rate" class="btn btn-primary">Calculate Rate</button>
+                        </div>
+                    </div>
+                <!-- </fieldset> -->
+            <!-- </form> -->
+
+              
+            
+          </div>
+          <div class="col">
+            <div style=""><!-- width:75%; -->
+                <canvas id="canvas"></canvas>
+            </div>
+            <form class="form-inline pt-5">
+                <div class="form-group">
+                    <label>Production Rate (uL/min)</label>
+                    <input class="form-control mx-sm-3" id  = "production_rate" value = '' disabled>
+                    <!-- <small class="text-muted">Must be 8-20 characters long.</small> -->
+                </div>
+            </form>
+          </div>
+        </div>
+    </div>
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+    <script>
+        var data_div_count = 3
+        const data = {
+                datasets: [],
+                };
+        // options = {
+        //     scales: {
+        //         yAxes: [{
+        //         scaleLabel: {
+        //             display: true,
+        //             labelString: 'probability'
+        //         }
+        //         }]
+        //     }     
+        // }
+        const config = {
+            type: 'scatter',
+            data: data,
+            options: {
+                scales: {
+                    xAxes: {
+                        
+                        type: 'linear',
+                        position: 'bottom',
+                        max: 7,
+                        min: 0,
+                        title: {
+                            display: true,
+                            
+                            text: 'Time (sec)'
+                        }
+                    },
+                    yAxes: {
+                        max: 5,
+                        min: 0,
+                        title: {
+                            display: true,
+                            text: 'Wetted Length (mm)'
+                        }
+                    }
+                },
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Wetted Length Vs Time',
+                        padding: {
+                            top: 10,
+                            bottom: 10
+                        },
+                        font: {
+                            size: 20
+                        }
+                    }
+                    // legend: {
+                    //     display: false,
+                        
+
+                    // }
+                }
+            }
+        };
+
+        window.onload = function() {
+            var ctx = document.getElementById("canvas").getContext("2d");
+            window.myLine = new Chart(ctx, config);
+        };
+
+        // document.getElementById('randomizeData').addEventListener('click', function() {
+        //     config.data.datasets.forEach(function(dataset) {
+        //         dataset.data = dataset.data.map(function() {
+        //             return randomScalingFactor();
+        //         });
+
+        //     });
+
+        //     window.myLine.update();
+        // });
+
+        var colorNames = Object.keys(window.chartColors);
+        // document.getElementById('addDataset').addEventListener('click', function() {
+        //     var colorName = colorNames[config.data.datasets.length % colorNames.length];
+        //     var newColor = window.chartColors[colorName];
+        //     var newDataset = {
+        //         label: 'Dataset ' + config.data.datasets.length,
+        //         backgroundColor: newColor,
+        //         borderColor: newColor,
+        //         data: [],
+        //         fill: false
+        //     };
+
+        //     for (var index = 0; index < config.data.labels.length; ++index) {
+        //         newDataset.data.push(randomScalingFactor());
+        //     }
+
+        //     config.data.datasets.push(newDataset);
+        //     window.myLine.update();
+        // });
+
+        // document.getElementById('addData').addEventListener('click', function() {
+        //     if (config.data.datasets.length > 0) {
+        //         var month = MONTHS[config.data.labels.length % MONTHS.length];
+        //         config.data.labels.push(month);
+
+        //         config.data.datasets.forEach(function(dataset) {
+        //             dataset.data.push(randomScalingFactor());
+        //         });
+
+        //         window.myLine.update();
+        //     }
+        // });
+        document.getElementById('add_point').addEventListener('click', function() {
+            
+            var elem = document.querySelector("#"+ "data_" + (data_div_count-1));
+            // Create a copy of it
+            var clone = elem.cloneNode(true);
+            // console.log(clone)
+            clone.id = "data_" + data_div_count;
+            clone.getElementsByTagName('input')[0].id = "data_" + data_div_count + "_time";
+            clone.getElementsByTagName('input')[1].id = "data_" + data_div_count + "_length";
+
+            
+            elem.after(clone);
+            document.getElementById("data_" + data_div_count + "_time").value = 15 + parseInt(document.getElementById("data_" + (data_div_count-1) + "_time").value)
+            data_div_count = data_div_count + 1;
+        });
+
+        document.getElementById('remove_point').addEventListener('click', function() {
+            if (data_div_count > 3) {
+                var el = document.querySelector("#"+ "data_" + (data_div_count-1));
+                el.remove(); // Removes the div with the 'div-02' id
+                data_div_count = data_div_count - 1
+            }
+        });
+        function get_data() {
+            var data = []
+            
+            for (let i = 0; i < data_div_count; i++) {
+                var time_val = document.getElementById("data_" + i + "_time").value;
+                var length_val = document.getElementById("data_" + i + "_length").value;
+
+                if (!(time_val === '' || length_val === '')) {
+                    data.push({x: parseInt(time_val), y:parseFloat(length_val)})
+                }
+            }
+            return data
+        }
+
+        function get_max_x(data_v) {
+            var max_val = 0
+            for (var i = 0; i < data_v.length; i++) {
+                // console.log(data_v[i].x)
+                max_val =  Math.max(max_val, data_v[i].x)
+            }
+            return max_val
+        }
+
+        function get_max_y(data_v) {
+            var max_val = 0
+            for (var i = 0; i < data_v.length; i++) {
+                
+                max_val =  Math.max(max_val, data_v[i].y)
+            }
+            return max_val
+        }
+
+        function get_min_x(data_v) {
+            var min_val = 99999
+            for (var i = 0; i < data_v.length; i++) {
+                // console.log(data_v[i].x)
+                min_val =  Math.min(min_val, data_v[i].x)
+            }
+            return min_val
+        }
+
+        function get_min_y(data_v) {
+            var min_val = 999999
+            for (var i = 0; i < data_v.length; i++) {
+                
+                min_val =  Math.min(min_val, data_v[i].y)
+            }
+            return min_val
+        }
+
+        function round(value, precision) {
+            var multiplier = Math.pow(10, precision || 0);
+            return Math.round(value * multiplier) / multiplier;
+        }
+        document.getElementById('calc_rate').addEventListener('click', function() {
+            var data_values = get_data()
+            // alert(min3_length)
+            if (data_values.length < 3){
+                alert("invalid input")
+            } else  {
+                // config.data.labels.splice(-1, 1); // remove the label first
+                // config.data.datasets.forEach(function(dataset, datasetIndex) {
+                //     dataset.data.pop();
+                // });
+                config.options.scales.xAxes.max = get_max_x(data_values) + 2
+                config.options.scales.yAxes.max = get_max_y(data_values) + 2
+
+                config.options.scales.xAxes.min = get_min_x(data_values) - 15 
+                config.options.scales.yAxes.min = get_min_y(data_values) - 2
+                
+                // config.options.scales.xAxes.max = config.options.scales.xAxes.max + parseInt(2)
+                // console.log(config.options.scales.xAxes.max)
+
+                var colorName = colorNames[config.data.datasets.length % colorNames.length];
+                var newColor = window.chartColors[colorName];
+                datoa = data_values
+                saturation_time = 999999
+                if (!(document.getElementById("saturation_time").value === '')) {
+                    var saturation_time = parseInt(document.getElementById("saturation_time").value)
+                } 
+                
+                var clean_data = datoa.map(({ x, y }) => {
+                            if (x <= saturation_time ){
+                                return [x, y];             // we need a list of [[x1, y1], [x2, y2], ...]
+                            }
+                            
+                        });
+                clean_data = clean_data.filter((a) => a)
+                        // .filter(({ x, y }) => {
+                        // return (
+                        //     typeof x === typeof y &&  // filter out one string & one number
+                        //     !isNaN(x) &&              // filter out `NaN`
+                        //     !isNaN(y) &&
+                        //     Math.abs(x) !== Infinity && 
+                        //     Math.abs(y) !== Infinity
+                        // );
+                        // })
+                        
+                // console.log(clean_data)
+                const my_regression = regression.linear(clean_data, {precision: 32});
+                const useful_points = my_regression.points.map(([x, y]) => {
+                                        return { x: x, y: y };    
+                                    })
+                // console.log(my_regression.points)
+                // console.log(my_regression)
+
+                var regression_line = {
+                    // label: 'Regression Line: ' + my_regression.string,
+                    label: 'Regression Line: ' + round(my_regression.equation[0], 2) + 'x + ' + round(my_regression.equation[1], 2),
+                    backgroundColor: window.chartColors.red,
+                    borderColor: window.chartColors.red,
+                    data: useful_points,
+                    showLine: true,
+                    fill: false
+                };
+
+                var data = {
+                    label: 'Original Data',
+                    backgroundColor: window.chartColors.yellow,
+                    borderColor: window.chartColors.yellow,
+                    data: datoa,
+                    fill: false
+                };
+
+
+                // for (var index = 0; index < config.data.labels.length; ++index) {
+                //     newDataset.data.push(randomScalingFactor());
+                // }
+                config.data.datasets = [] //.splice(0, 1);
+                config.data.datasets.push(data);
+                config.data.datasets.push(regression_line);
+                
+                // console.log(config.options.scales.xAxes.max)
+                window.myLine.update();
+                console.log(my_regression)
+
+                document.getElementById('production_rate').value = round(my_regression.equation[0] * 60 * 0.7 * 5 * 0.22, 2).toFixed(2)
+                
+                // round(my_regression.equation[0] * 60 * 0.7, 3)
+            }
+                
+        });
+
+        // document.getElementById('removeDataset').addEventListener('click', function() {
+        //     config.data.datasets.splice(0, 1);
+        //     window.myLine.update();
+        // });
+
+        // document.getElementById('removeData').addEventListener('click', function() {
+        //     config.data.labels.splice(-1, 1); // remove the label first
+
+        //     config.data.datasets.forEach(function(dataset, datasetIndex) {
+        //         dataset.data.pop();
+        //     });
+
+        //     window.myLine.update();
+        // });
+    </script>
+</body>
+
+</html>
